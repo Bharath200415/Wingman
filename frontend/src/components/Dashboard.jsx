@@ -59,221 +59,295 @@ function ChartCard({ chart }) {
 // ── AI Chat Panel ──────────────────────────────────────────
 function AIChat({ result }) {
   const [messages, setMessages] = useState([
-    { role:"assistant", text:"Hey! I've analyzed your WhatsApp chat. Ask me anything — response patterns, who ghosts more, peak hours, anything. I'll give you a straight answer." }
+    {
+      role:"assistant",
+      text:
+      "Hey! I've analyzed your WhatsApp chat. Ask me anything — response patterns, ghosting, peak hours, anything."
+    }
   ]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const bottomRef = useRef();
-  const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
-  const xaiApiKey = import.meta.env.VITE_XAI_API_KEY;
-  const groqApiKey = import.meta.env.VITE_GROQ_API_KEY;
-  const provider = geminiApiKey ? "gemini" : (xaiApiKey ? "xai" : "groq");
-  const aiApiKey = provider === "gemini" ? geminiApiKey : (provider === "xai" ? xaiApiKey : groqApiKey);
-  const aiModel =
-    import.meta.env.VITE_AI_MODEL ||
-    (provider === "gemini"
-      ? "gemini-3-flash-preview"
-      : (provider === "xai" ? "grok-4" : "llama-3.3-70b-versatile"));
-  const aiEndpoint =
-    import.meta.env.VITE_AI_ENDPOINT ||
-    (provider === "gemini"
-      ? `https://generativelanguage.googleapis.com/v1beta/models/${aiModel}:generateContent?key=${aiApiKey}`
-      : (provider === "xai"
-        ? "https://api.x.ai/v1/chat/completions"
-        : "https://api.groq.com/openai/v1/chat/completions"));
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior:"smooth" });
-  }, [messages, loading]);
+  const [input,setInput] = useState("");
+  const [loading,setLoading] = useState(false);
+
+  const bottomRef = useRef();
+
+  const API_URL =
+    import.meta.env.VITE_API_URL ||
+    "http://localhost:8000";
+
+
+  useEffect(()=>{
+    bottomRef.current?.scrollIntoView({
+      behavior:"smooth"
+    });
+  },[messages,loading]);
+
 
   const buildContext = () => {
     const {
       stats,
       participants,
       total_messages,
-      sender_stats = {},
-      response_by_sender = {},
-      peak_hours = {},
+      sender_stats={},
+      response_by_sender={},
+      peak_hours={}
     } = result;
-    return `You are a witty, sharp analyst for a WhatsApp chat export. Here is ALL the data you have:
 
-Participants: ${participants.join(", ")}
-Total Messages: ${total_messages}
+    return `
+Participants:
+${participants.join(", ")}
+
+Total Messages:
+${total_messages}
 
 Summary Stats:
-${JSON.stringify(stats, null, 2)}
+${JSON.stringify(stats,null,2)}
 
-Per-Person Message Stats:
-${JSON.stringify(sender_stats, null, 2)}
+Per Person Stats:
+${JSON.stringify(sender_stats,null,2)}
 
-Response Times by Person (in minutes):
-${JSON.stringify(response_by_sender, null, 2)}
+Response Times:
+${JSON.stringify(response_by_sender,null,2)}
 
-Peak Messaging Hours:
-${JSON.stringify(peak_hours, null, 2)}
-
-INSTRUCTIONS:
-- Answer conversationally and directly, like a sharp friend — not a corporate report.
-- Use specific numbers from the data above when relevant.
-- If a question involves comparing people, compare them factually using the data.
-- If the gap between P50 and P99 is huge for someone, call it out — it means they mostly reply fast but occasionally ghost.
-- Be concise. 2-4 sentences usually enough unless it is a complex question.
-- Never make up numbers not in the data.`;
+Peak Hours:
+${JSON.stringify(peak_hours,null,2)}
+`;
   };
 
-  const send = async () => {
-    const text = input.trim();
-    if (!text || loading) return;
 
-    if (!aiApiKey) {
-      setMessages(prev => [...prev, { role:"assistant", text:"Missing API key in frontend .env (VITE_GEMINI_API_KEY, VITE_XAI_API_KEY, or VITE_GROQ_API_KEY)." }]);
-      return;
+  const send = async (forcedQuestion=null) => {
+
+    const text = forcedQuestion || input.trim();
+
+    if(!text || loading) return;
+
+    if(!forcedQuestion){
+      setInput("");
     }
 
-    setInput("");
-    setMessages(prev => [...prev, { role:"user", text }]);
+    setMessages(prev=>[
+      ...prev,
+      {
+        role:"user",
+        text
+      }
+    ]);
+
     setLoading(true);
 
-    try {
-      const res = await fetch(aiEndpoint, {
-        method: "POST",
-        headers: provider === "gemini"
-          ? { "Content-Type": "application/json" }
-          : {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${aiApiKey}`,
-            },
-        body: JSON.stringify(
-          provider === "gemini"
-            ? {
-                systemInstruction: { parts: [{ text: buildContext() }] },
-                contents: [
-                  ...messages
-                    .filter((m, i) => !(m.role === "assistant" && i === 0))
-                    .map((m) => ({
-                      role: m.role === "assistant" ? "model" : "user",
-                      parts: [{ text: m.text }],
-                    })),
-                  { role: "user", parts: [{ text }] },
-                ],
-                generationConfig: {
-                  maxOutputTokens: 1000,
-                },
-              }
-            : {
-                model: aiModel,
-                max_tokens: 1000,
-                messages: [
-                  { role: "system", content: buildContext() },
-                  ...messages.filter((m, i) => !(m.role === "assistant" && i === 0))
-                          .map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: m.text })),
-                  { role: "user", content: text }
-                ]
-              }
-        )
-      });
+    try{
+
+      const res = await fetch(
+        `${API_URL}/chat`,
+        {
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json"
+          },
+
+          body:JSON.stringify({
+            context: buildContext(),
+            question: text
+          })
+        }
+      );
 
       const data = await res.json();
-      if (!res.ok) {
-        const providerMessage =
-          data?.error?.message ||
-          data?.error ||
-          data?.message ||
-          (data?.code ? `${data.code}` : "");
-        throw new Error(providerMessage || `AI request failed (${res.status})`);
+
+      if(!res.ok){
+        throw new Error(
+          data?.detail ||
+          "AI request failed."
+        );
       }
 
-      const reply = provider === "gemini"
-        ? data?.candidates?.[0]?.content?.parts?.map((p) => p?.text || "").join("\n").trim()
-        : data?.choices?.[0]?.message?.content;
-      if (!reply) {
-        throw new Error("AI provider returned an empty response.");
-      }
+      setMessages(prev=>[
+        ...prev,
+        {
+          role:"assistant",
+          text:data.reply
+        }
+      ]);
 
-      setMessages(prev => [...prev, { role:"assistant", text:reply }]);
-    } catch(e) {
-      setMessages(prev => [...prev, { role:"assistant", text:e?.message || "Failed to reach AI. Check your connection." }]);
+    }catch(e){
+
+      setMessages(prev=>[
+        ...prev,
+        {
+          role:"assistant",
+          text:
+          e?.message ||
+          "Failed to reach AI backend."
+        }
+      ]);
+
     }
+
     setLoading(false);
   };
 
+
   const SUGGESTED = [
     "Who takes longer to reply?",
-    "What time is best to message?",
     "Who double texts more?",
-    "What was the longest gap?",
+    "What time is best to message?",
+    "What was the longest gap?"
   ];
 
+
   return (
-    <div className="flex flex-col h-full" style={{ minHeight:0 }}>
-      {/* Header */}
-      <div className="px-6 py-4 flex items-center gap-3" style={{ borderBottom:"1px solid #1f2535" }}>
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold" style={{ background:"linear-gradient(135deg,#f5c842,#f59e0b)", color:"#0d0f14" }}>✦</div>
-        <div>
-          <p className="text-sm font-semibold" style={{ color:"#e8eaf5", fontFamily:"'Cabinet Grotesk',sans-serif" }}>AI Analyst</p>
-          <p className="text-xs" style={{ color:"#10d9a0", fontFamily:"'Fira Code',monospace" }}>● online</p>
-        </div>
-      </div>
+<div className="flex flex-col h-full" style={{minHeight:0}}>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3" style={{ minHeight:0 }}>
-        {messages.map((m, i) => (
-          <div key={i} className={`flex ${m.role==="user"?"justify-end":"justify-start"}`}>
-            <div className={`max-w-[85%] px-4 py-3 text-sm leading-relaxed ${m.role==="user"?"chat-bubble-user":"chat-bubble-ai"}`}
-              style={{
-                background: m.role==="user"?"linear-gradient(135deg,#f5c842,#f59e0b)":"#1a1e2a",
-                color: m.role==="user"?"#0d0f14":"#e8eaf5",
-                border: m.role==="assistant"?"1px solid #1f2535":"none",
-                fontFamily:"'DM Sans',sans-serif",
-              }}>
-              {m.text}
-            </div>
-          </div>
-        ))}
-        {loading && (
-          <div className="flex justify-start">
-            <div className="chat-bubble-ai px-4 py-3 flex gap-1 items-center" style={{ background:"#1a1e2a", border:"1px solid #1f2535" }}>
-              {[0,1,2].map(i=>(
-                <div key={i} className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background:"#f5c842", animationDelay:`${i*150}ms` }} />
-              ))}
-            </div>
-          </div>
-        )}
-        <div ref={bottomRef} />
-      </div>
+{/* Header */}
+<div
+className="px-6 py-4 flex items-center gap-3"
+style={{
+ borderBottom:"1px solid #1f2535"
+}}>
+<div
+className="w-9 h-9 rounded-xl flex items-center justify-center"
+style={{
+ background:
+ "linear-gradient(135deg,#f5c842,#f59e0b)"
+}}>
+✦
+</div>
 
-      {/* Suggested questions — only if few messages */}
-      {messages.length <= 2 && (
-        <div className="px-4 pb-3 flex flex-wrap gap-2">
-          {SUGGESTED.map(q=>(
-            <button key={q} onClick={()=>{setInput(q); setTimeout(()=>send(),50);}}
-              className="text-xs px-3 py-1.5 rounded-xl transition-all hover:border-[#f5c842] hover:text-[#f5c842]"
-              style={{ background:"#1a1e2a", color:"#8b91b0", border:"1px solid #1f2535", fontFamily:"'Fira Code',monospace" }}>
-              {q}
-            </button>
-          ))}
-        </div>
-      )}
+<div>
+<p
+className="text-sm font-semibold"
+style={{color:"#e8eaf5"}}>
+AI Analyst
+</p>
 
-      {/* Input */}
-      <div className="px-4 pb-4">
-        <div className="flex gap-2 rounded-2xl p-1.5" style={{ background:"#1a1e2a", border:"1px solid #1f2535" }}>
-          <input
-            value={input}
-            onChange={e=>setInput(e.target.value)}
-            onKeyDown={e=>e.key==="Enter"&&send()}
-            placeholder="Ask anything about your chat…"
-            className="flex-1 bg-transparent text-sm outline-none px-3"
-            style={{ color:"#e8eaf5", fontFamily:"'DM Sans',sans-serif" }}
-          />
-          <button onClick={send} disabled={!input.trim()||loading}
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold transition-all disabled:opacity-40"
-            style={{ background:"linear-gradient(135deg,#f5c842,#f59e0b)", color:"#0d0f14" }}>
-            ↑
-          </button>
-        </div>
-      </div>
-    </div>
+<p
+className="text-xs"
+style={{color:"#10d9a0"}}>
+● online
+</p>
+</div>
+</div>
+
+
+{/* Messages */}
+<div
+className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3"
+style={{minHeight:0}}
+>
+
+{messages.map((m,i)=>(
+<div
+key={i}
+className={`flex ${
+m.role==="user"
+? "justify-end"
+: "justify-start"
+}`}
+>
+
+<div
+className="max-w-[85%] px-4 py-3 text-sm leading-relaxed"
+style={{
+background:
+m.role==="user"
+? "linear-gradient(135deg,#f5c842,#f59e0b)"
+:"#1a1e2a",
+
+color:
+m.role==="user"
+? "#0d0f14"
+:"#e8eaf5",
+
+border:
+m.role==="assistant"
+?"1px solid #1f2535"
+:"none"
+}}
+>
+{m.text}
+</div>
+
+</div>
+))}
+
+
+{loading && (
+<div className="flex justify-start">
+<div
+className="px-4 py-3"
+style={{
+background:"#1a1e2a",
+border:"1px solid #1f2535"
+}}>
+Thinking...
+</div>
+</div>
+)}
+
+<div ref={bottomRef}/>
+</div>
+
+
+
+{/* Suggested prompts */}
+{messages.length<=2 && (
+<div className="px-4 pb-3 flex flex-wrap gap-2">
+{SUGGESTED.map(q=>(
+<button
+key={q}
+onClick={()=>send(q)}
+className="text-xs px-3 py-1.5 rounded-xl"
+style={{
+background:"#1a1e2a",
+color:"#8b91b0",
+border:"1px solid #1f2535"
+}}
+>
+{q}
+</button>
+))}
+</div>
+)}
+
+
+
+{/* Input */}
+<div className="px-4 pb-4">
+<div
+className="flex gap-2 rounded-2xl p-1.5"
+style={{
+background:"#1a1e2a",
+border:"1px solid #1f2535"
+}}
+>
+
+<input
+value={input}
+onChange={e=>setInput(e.target.value)}
+onKeyDown={e=>e.key==="Enter" && send()}
+placeholder="Ask anything about your chat..."
+className="flex-1 bg-transparent outline-none px-3"
+style={{
+color:"#e8eaf5"
+}}
+/>
+
+<button
+onClick={send}
+disabled={!input.trim() || loading}
+className="w-9 h-9 rounded-xl"
+style={{
+background:
+"linear-gradient(135deg,#f5c842,#f59e0b)"
+}}
+>
+↑
+</button>
+
+</div>
+</div>
+
+</div>
   );
 }
 

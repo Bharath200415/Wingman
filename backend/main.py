@@ -3,17 +3,50 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import os
 import base64
+from dotenv import load_dotenv
+import google.generativeai as genai
+from pydantic import BaseModel
 from analyzer import WhatsAppAnalyzer
+
 
 app = FastAPI(title="WhatsApp Analyzer API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],   # tighten in production
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+
+# -----------------------------
+# Gemini Setup
+# -----------------------------
+load_dotenv()
+
+GEMINI_KEY = os.getenv("GEMINI_API_KEY")
+
+if not GEMINI_KEY:
+    raise RuntimeError("GEMINI_API_KEY missing in backend .env")
+
+genai.configure(api_key=GEMINI_KEY)
+
+model = genai.GenerativeModel(
+    "gemini-2.5-flash"
+)
+
+
+# -----------------------------
+# Request Models
+# -----------------------------
+class ChatRequest(BaseModel):
+    context: str
+    question: str
+
+
+# -----------------------------
+# Chart labels
+# -----------------------------
 CHART_LABELS = {
     "00_summary_stats.png": "Summary Stats",
     "01_response_time_percentiles.png": "Response Time Percentiles",
@@ -30,27 +63,43 @@ CHART_LABELS = {
 }
 
 
-def image_to_base64(path: str) -> str:
+def image_to_base64(path: str):
     with open(path, "rb") as f:
-        return base64.b64encode(f.read()).decode("utf-8")
+        return base64.b64encode(
+            f.read()
+        ).decode("utf-8")
 
 
+# -----------------------------
+# Analyze WhatsApp Chat
+# -----------------------------
 @app.post("/analyze")
 async def analyze_chat(file: UploadFile = File(...)):
-    
+
     if not file.filename.endswith(".txt"):
         raise HTTPException(
             status_code=400,
             detail="Only .txt WhatsApp exports are supported."
         )
 
-    # OUTSIDE the if block
+    # persistent outputs
     tmpdir = "analysis_outputs"
     os.makedirs(tmpdir, exist_ok=True)
 
-    input_path = os.path.join(tmpdir, "chat.txt")
-    output_dir = os.path.join(tmpdir, "output")
-    os.makedirs(output_dir, exist_ok=True)
+    input_path = os.path.join(
+        tmpdir,
+        "chat.txt"
+    )
+
+    output_dir = os.path.join(
+        tmpdir,
+        "output"
+    )
+
+    os.makedirs(
+        output_dir,
+        exist_ok=True
+    )
 
     content = await file.read()
 
@@ -58,12 +107,18 @@ async def analyze_chat(file: UploadFile = File(...)):
         f.write(content)
 
     try:
-        analyzer = WhatsAppAnalyzer(input_path, output_dir)
+        analyzer = WhatsAppAnalyzer(
+            input_path,
+            output_dir
+        )
 
         analyzer.parse_chat()
+
         stats = analyzer.generate_summary_stats()
+
         ai_context = analyzer.generate_ai_context()
 
+        # generate plots
         analyzer.plot_response_time_percentiles()
         analyzer.plot_response_time_heatmap()
         analyzer.plot_message_volume()
@@ -77,47 +132,131 @@ async def analyze_chat(file: UploadFile = File(...)):
         analyzer.plot_daily_streak()
 
     except Exception as e:
-        # read a small preview of the uploaded file for debugging (sanitized)
+
         preview = []
+
         try:
-            with open(input_path, 'r', encoding='utf-8', errors='replace') as fh:
+            with open(
+                input_path,
+                "r",
+                encoding="utf-8",
+                errors="replace"
+            ) as fh:
+
                 for i, line in enumerate(fh):
                     if i >= 200:
                         break
-                    preview.append(line.rstrip('\n'))
-        except Exception:
-            preview = ["<could not read preview>"]
+                    preview.append(
+                        line.rstrip("\n")
+                    )
 
-        # return structured JSON with error message and a small preview to help identify format
-        return JSONResponse(status_code=422, content={
-            "error": str(e),
-            "preview_lines": preview,
-            "hint": "If timestamps look different from WhatsApp's typical exports, paste the first 20 lines here or re-export 'Without Media'."
-        })
+        except Exception:
+            preview = [
+                "<could not read preview>"
+            ]
+
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": str(e),
+                "preview_lines": preview,
+                "hint":
+                "If export format differs, re-export WhatsApp chat 'Without Media'."
+            }
+        )
 
     charts = []
 
     for filename, label in CHART_LABELS.items():
-        path = os.path.join(output_dir, filename)
+
+        path = os.path.join(
+            output_dir,
+            filename
+        )
 
         if os.path.exists(path):
             charts.append({
-                "id": filename.replace(".png",""),
-                "label": label,
-                "image": image_to_base64(path)
+                "id":
+                filename.replace(
+                    ".png",
+                    ""
+                ),
+
+                "label":
+                label,
+
+                "image":
+                image_to_base64(path)
             })
 
     return JSONResponse({
-        "stats": {k:str(v) for k,v in stats.items()},
-        "charts": charts,
-        "participants": analyzer.df["sender"].unique().tolist(),
-        "total_messages": len(analyzer.df),
-        "sender_stats": ai_context["sender_stats"],
-        "response_by_sender": ai_context["response_by_sender"],
-        "peak_hours": ai_context["peak_hours"],
+        "stats":
+            {k: str(v) for k, v in stats.items()},
+
+        "charts":
+            charts,
+
+        "participants":
+            analyzer.df["sender"]
+            .unique()
+            .tolist(),
+
+        "total_messages":
+            len(analyzer.df),
+
+        "sender_stats":
+            ai_context["sender_stats"],
+
+        "response_by_sender":
+            ai_context["response_by_sender"],
+
+        "peak_hours":
+            ai_context["peak_hours"],
     })
+
+
+# -----------------------------
+# Gemini AI Analyst Chat
+# -----------------------------
+@app.post("/chat")
+async def chat(req: ChatRequest):
+    try:
+
+        prompt = f"""
+You are a sharp but concise WhatsApp relationship analyst.
+
+Chat analytics:
+{req.context}
+
+User question:
+{req.question}
+
+Rules:
+- Use the data.
+- Be conversational.
+- Give direct insights.
+- Be concise.
+"""
+
+        response = model.generate_content(
+            prompt
+        )
+
+        return {
+            "reply":
+            response.text
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
 
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {
+        "status": "ok"
+    }
