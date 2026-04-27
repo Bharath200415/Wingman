@@ -34,7 +34,9 @@ class WhatsAppAnalyzer:
 
     def parse_chat(self):
         # Robust parse that handles multi-line messages and several common timestamp formats.
-        timestamp_re = re.compile(r"^\[?(?P<ts>\d{1,4}[\-/]\d{1,2}[\-/]\d{1,4}(?:,?\s+\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM|am|pm)?)?)\]?\s*[-–]\s*(?P<sender>[^:]+?):\s*(?P<msg>.*)")
+        timestamp_re = re.compile(
+            r"^\[?(?P<ts>\d{1,4}[\-/]\d{1,2}[\-/]\d{1,4}(?:,?\s+\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM|am|pm)?)?)\]?\s*[-–]\s*(?:(?P<sender>[^:]+?):\s*)?(?P<msg>.*)"
+        )
 
         # suppress UnknownTimezoneWarning from dateutil and provide tz resolver
         warnings.filterwarnings("ignore", category=UnknownTimezoneWarning)
@@ -46,20 +48,22 @@ class WhatsAppAnalyzer:
         current = None
         matched = 0
         for raw in lines:
-            line = raw.rstrip('\n')
+            line = raw.replace('\u202f', ' ').replace('\xa0', ' ').rstrip('\n')
             m = timestamp_re.match(line.strip())
             if m:
                 # start of a new message
                 if current:
                     self.messages.append(current)
-                ts_str = m.group('ts').strip('[]')
-                sender = m.group('sender').strip()
+                ts_str = m.group('ts').strip('[]').strip()
+                sender = m.group('sender').strip() if m.group('sender') else 'System'
                 msg = m.group('msg').strip()
                 timestamp = None
                 # try a list of timestamp formats
                 for fmt in ['%m/%d/%y, %I:%M %p', '%m/%d/%Y, %I:%M %p', '%d/%m/%Y, %H:%M',
                             '%d/%m/%y, %H:%M', '%m/%d/%y, %H:%M', '%Y-%m-%d, %H:%M:%S',
-                            '%Y-%m-%d, %H:%M', '%d/%m/%Y, %I:%M %p', '%m/%d/%Y, %H:%M:%S']:
+                            '%Y-%m-%d, %H:%M', '%d/%m/%Y, %I:%M %p', '%m/%d/%Y, %H:%M:%S',
+                            '%d/%m/%y, %I:%M %p', '%m/%d/%y, %I:%M%p', '%d/%m/%y, %I:%M%p',
+                            '%m/%d/%Y, %I:%M%p', '%d/%m/%Y, %I:%M%p']:
                     try:
                         timestamp = datetime.strptime(ts_str, fmt)
                         break

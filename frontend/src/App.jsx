@@ -55,9 +55,9 @@ export default function App() {
 
       <div className="relative z-10 w-full max-w-lg animate-fade-up">
         <div className="flex flex-col items-center gap-4 mb-10">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-[15px] font-black" style={{ background:"linear-gradient(135deg,#f5c842,#f59e0b)", color:"#0d0f14", fontFamily:"'Cabinet Grotesk',sans-serif" }}>WA</div>
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-[15px] font-black" style={{ background:"linear-gradient(135deg,#f5c842,#f59e0b)", color:"#0d0f14", fontFamily:"'Cabinet Grotesk',sans-serif" }}>WM</div>
           <div className="text-center">
-            <h1 className="text-5xl text-red-500 font-black tracking-tight leading-none mb-2" style={{ fontFamily:"'Cabinet Grotesk',sans-serif" }}>
+            <h1 className="text-5xl font-black tracking-tight leading-none mb-2" style={{ fontFamily:"'Cabinet Grotesk',sans-serif" }}>
               Wingman
             </h1>
             <p className="text-xs" style={{ color:"#8b91b0", fontFamily:"'Fira Code',monospace" }}>12 brutal charts. 1 AI analyst. Drop your export.</p>
