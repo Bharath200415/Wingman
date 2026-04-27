@@ -33,7 +33,7 @@ class WhatsAppAnalyzer:
         os.makedirs(self.output_dir, exist_ok=True)
 
     def parse_chat(self):
-        # Robust parse that handles multi-line messages and several common timestamp formats.
+        #handling both 24hr and 12hr timestamps
         timestamp_re = re.compile(
             r"^\[?(?P<ts>\d{1,4}[\-/]\d{1,2}[\-/]\d{1,4}(?:,?\s+\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM|am|pm)?)?)\]?\s*[-–]\s*(?:(?P<sender>[^:]+?):\s*)?(?P<msg>.*)"
         )
@@ -57,6 +57,32 @@ class WhatsAppAnalyzer:
                 ts_str = m.group('ts').strip('[]').strip()
                 sender = m.group('sender').strip() if m.group('sender') else 'System'
                 msg = m.group('msg').strip()
+
+
+                SYSTEM_PHRASES = [
+                    "added",
+                    "removed",
+                    "left",
+                    "joined using this group's invite link",
+                    "changed the subject",
+                    "changed this group's icon",
+                    "deleted this message",
+                    "messages and calls are end-to-end encrypted",
+                    "security code changed"
+                ]
+
+                # Skip system sender messages
+                if sender.lower() == "system":
+                    continue
+
+                # Skip whatsapp auto-generated system notifications
+                if any(
+                    phrase in msg.lower()
+                    for phrase in SYSTEM_PHRASES
+                ):
+                    continue
+
+
                 timestamp = None
                 # try a list of timestamp formats
                 for fmt in ['%m/%d/%y, %I:%M %p', '%m/%d/%Y, %I:%M %p', '%d/%m/%Y, %H:%M',

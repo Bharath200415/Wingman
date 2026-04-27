@@ -18,10 +18,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# -----------------------------
-# Gemini Setup
-# -----------------------------
 load_dotenv()
 
 GEMINI_KEY = os.getenv("GEMINI_API_KEY")
@@ -36,17 +32,11 @@ model = genai.GenerativeModel(
 )
 
 
-# -----------------------------
-# Request Models
-# -----------------------------
+
 class ChatRequest(BaseModel):
     context: str
     question: str
 
-
-# -----------------------------
-# Chart labels
-# -----------------------------
 CHART_LABELS = {
     "00_summary_stats.png": "Summary Stats",
     "01_response_time_percentiles.png": "Response Time Percentiles",
@@ -70,9 +60,6 @@ def image_to_base64(path: str):
         ).decode("utf-8")
 
 
-# -----------------------------
-# Analyze WhatsApp Chat
-# -----------------------------
 @app.post("/analyze")
 async def analyze_chat(file: UploadFile = File(...)):
 
@@ -214,10 +201,6 @@ async def analyze_chat(file: UploadFile = File(...)):
             ai_context["peak_hours"],
     })
 
-
-# -----------------------------
-# Gemini AI Analyst Chat
-# -----------------------------
 @app.post("/chat")
 async def chat(req: ChatRequest):
     try:
