@@ -122,17 +122,17 @@ async def analyze_chat(file: UploadFile = File(...)):
         ai_context = analyzer.generate_ai_context()
 
         # generate plots
-        # analyzer.plot_response_time_percentiles()
-        # analyzer.plot_response_time_heatmap()
-        # analyzer.plot_message_volume()
-        # analyzer.plot_activity_patterns()
-        # analyzer.plot_conversation_initiators()
-        # analyzer.plot_double_text_frequency()
-        # analyzer.plot_message_length_analysis()
-        # analyzer.plot_emoji_analysis()
-        # analyzer.plot_question_frequency()
-        # analyzer.plot_conversation_gaps()
-        # analyzer.plot_daily_streak()
+        analyzer.plot_response_time_percentiles()
+        analyzer.plot_response_time_heatmap()
+        analyzer.plot_message_volume()
+        analyzer.plot_activity_patterns()
+        analyzer.plot_conversation_initiators()
+        analyzer.plot_double_text_frequency()
+        analyzer.plot_message_length_analysis()
+        analyzer.plot_emoji_analysis()
+        analyzer.plot_question_frequency()
+        analyzer.plot_conversation_gaps()
+        analyzer.plot_daily_streak()
 
     except Exception as e:
 
