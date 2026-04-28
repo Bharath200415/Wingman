@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import { useChats } from "./hooks/useChats.js";
 import UploadPage from "./components/upload/UploadPage.jsx";
 import Dashboard from "./components/dashboard/Dashboard.jsx";
+import { MoonIcon,SunIcon } from "./components/icons.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -26,15 +27,38 @@ export default function App() {
     setShowUpload(false);
   };
 
+  const [darkMode,setDarkMode]=useState(
+    localStorage.getItem("theme") !== "light"
+  );
+
+  useEffect(()=>{
+    if(darkMode){
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme","dark");
+    }else{
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme","light");
+    }
+  },[darkMode]);
+
+
   // Show upload page if: no chats saved, or explicitly triggered
   const shouldShowUpload = showUpload || (chats.length === 0 && !activeId);
 
   if (shouldShowUpload) {
     return (
-      <UploadPage
-        apiUrl={API_URL}
-        onResult={handleResult}
-      />
+      <div>
+        <button onClick={()=>setDarkMode(!darkMode)} 
+          className='cursor-pointer absolute size-6 border border-neutral-200 dark:border-neutral-800 rounded-md  flex items-center justify-center top-4 right-4'>
+              <SunIcon  className='absolute inset-0 shrink-0 size-4 dark:scale-0 scale-100 dark:rotate-45 text-neutral-500 transition-all duration-300 m-auto'/>
+              <MoonIcon className='absolute inset-0 shrink-0 size-4 dark:scale-100 scale-0 dark:rotate-0 rotate-45 text-neutral-500 transition-all duration-300 m-auto'/>
+        </button>
+        <UploadPage
+          apiUrl={API_URL}
+          onResult={handleResult}
+        />
+      </div>
+
     );
   }
 

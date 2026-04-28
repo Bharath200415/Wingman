@@ -41,7 +41,7 @@ export function CardHeader({ title, badge }) {
       className="flex items-center justify-between px-5 py-3"
       style={{ borderBottom: `1px solid ${C.border}` }}
     >
-      <span className="text-sm font-semibold" style={{ color: C.ink, fontFamily: "'Cabinet Grotesk',sans-serif" }}>
+      <span className="text-sm font-semibold dark:text-2xl" style={{ color: C.ink, fontFamily: "'Cabinet Grotesk',sans-serif" }}>
         {title}
       </span>
       {badge && (
