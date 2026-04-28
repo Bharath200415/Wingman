@@ -90,7 +90,7 @@ export default function UploadPage({ onResult, apiUrl }) {
                 style={{ width:`${((step+1)/STEPS.length)*88}%`, background:`linear-gradient(90deg,${C.gold},${C.green})` }} />
             </div>
             <p className="text-[11px]" style={{ color: C.ink3, fontFamily:"'Fira Code',monospace" }}>
-              10–30s depending on chat size
+              30–60s depending on chat size
             </p>
           </div>
         ) : (
