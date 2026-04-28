@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { C } from "../ui.jsx";
 
+const TOKEN_STORAGE_KEY = "wingman_gemini_api_key";
+
 
 const SUGGESTED = [
   "Who takes longer to reply?",
@@ -57,6 +59,9 @@ function ThinkingDots() {
 
 export default function AIChat({ data }) {
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem(TOKEN_STORAGE_KEY) || "");
+  const [tokenDraft, setTokenDraft] = useState("");
+  const [showTokenModal, setShowTokenModal] = useState(false);
 
   const [messages, setMessages] = useState([{
     role: "assistant",
@@ -70,9 +75,34 @@ export default function AIChat({ data }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
+  useEffect(() => {
+    if (!apiKey) {
+      setShowTokenModal(true);
+      setTokenDraft("");
+    }
+  }, [apiKey]);
+
+  const saveToken = () => {
+    const nextKey = tokenDraft.trim();
+    if (!nextKey) return;
+    localStorage.setItem(TOKEN_STORAGE_KEY, nextKey);
+    setApiKey(nextKey);
+    setTokenDraft("");
+    setShowTokenModal(false);
+  };
+
+  const openTokenModal = () => {
+    setTokenDraft(apiKey);
+    setShowTokenModal(true);
+  };
+
   const send = async (forcedText) => {
     const text = forcedText ?? input.trim();
     if (!text || loading) return;
+    if (!apiKey) {
+      openTokenModal();
+      return;
+    }
     if (!forcedText) setInput("");
 
     const userMsg = { role: "user", text };
@@ -83,7 +113,7 @@ export default function AIChat({ data }) {
       const res = await fetch(`${API_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ context: buildContext(data), question: text }),
+        body: JSON.stringify({ context: buildContext(data), question: text, api_key: apiKey }),
       });
 
       const json = await res.json();
@@ -118,8 +148,17 @@ export default function AIChat({ data }) {
           <p className="text-sm font-semibold" style={{ color: C.ink, fontFamily:"'Cabinet Grotesk',sans-serif" }}>Wingman AI</p>
           <p className="text-[10px]" style={{ color: C.green, fontFamily:"'Fira Code',monospace" }}>● Powered by Gemini</p>
         </div>
-        <div className="ml-auto text-[10px] px-2 py-1 rounded-lg" style={{ background:`${C.green}15`, color: C.green, border:`1px solid ${C.green}30`, fontFamily:"'Fira Code',monospace" }}>
-          Backend Gemini
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={openTokenModal}
+            className="text-[10px] px-2 py-1 rounded-lg transition-all"
+            style={{ background:`${C.surface2}`, color: C.ink2, border:`1px solid ${C.border}`, fontFamily:"'Fira Code',monospace" }}
+          >
+            Change API token
+          </button>
+          <div className="text-[10px] px-2 py-1 rounded-lg" style={{ background:`${C.green}15`, color: C.green, border:`1px solid ${C.green}30`, fontFamily:"'Fira Code',monospace" }}>
+            {apiKey ? "Token saved" : "Token required"}
+          </div>
         </div>
       </div>
 
@@ -177,6 +216,58 @@ export default function AIChat({ data }) {
           </button>
         </div>
       </div>
+
+      {showTokenModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: "#00000080" }}>
+          <div className="w-full max-w-md rounded-2xl p-5" style={{ background: C.base, border: `1px solid ${C.border}` }}>
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div>
+                <p className="text-base font-semibold" style={{ color: C.ink, fontFamily:"'Cabinet Grotesk',sans-serif" }}>
+                  Enter your Gemini API token
+                </p>
+                <p className="text-xs mt-1" style={{ color: C.ink3 }}>
+                  This token is stored in your browser and sent to the backend for AI chat requests.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowTokenModal(false)}
+                className="text-xs px-2 py-1 rounded-lg"
+                style={{ background: C.surface2, color: C.ink2, border: `1px solid ${C.border}` }}
+              >
+                Close
+              </button>
+            </div>
+
+            <input
+              autoFocus
+              type="password"
+              value={tokenDraft}
+              onChange={(e) => setTokenDraft(e.target.value)}
+              placeholder="Paste your Gemini API token here"
+              className="w-full rounded-xl px-3 py-3 text-sm outline-none"
+              style={{ background: C.surface2, border: `1px solid ${C.border}`, color: C.ink }}
+            />
+
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setShowTokenModal(false)}
+                className="px-3 py-2 rounded-xl text-sm"
+                style={{ background: C.surface2, color: C.ink2, border: `1px solid ${C.border}` }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveToken}
+                disabled={!tokenDraft.trim()}
+                className="px-3 py-2 rounded-xl text-sm font-semibold disabled:opacity-40"
+                style={{ background: `linear-gradient(135deg,${C.gold},#f59e0b)`, color: C.base }}
+              >
+                Save token
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

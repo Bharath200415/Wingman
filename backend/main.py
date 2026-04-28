@@ -37,11 +37,6 @@ def load_env_file(path: str = ".env"):
 load_env_file()
 
 GEMINI_KEY = os.getenv("GEMINI_API_KEY")
-
-if not GEMINI_KEY:
-    raise RuntimeError("GEMINI_API_KEY missing in backend .env")
-
-client = genai.Client(api_key=GEMINI_KEY)
 GEMINI_MODEL = "gemini-3.1-flash-lite-preview"
 
 
@@ -49,6 +44,14 @@ GEMINI_MODEL = "gemini-3.1-flash-lite-preview"
 class ChatRequest(BaseModel):
     context: str
     question: str
+    api_key: str | None = None
+
+
+def get_gemini_client(api_key: str | None = None):
+    key = (api_key or "").strip() or GEMINI_KEY
+    if not key:
+        raise RuntimeError("No Gemini API key provided.")
+    return genai.Client(api_key=key)
 
 CHART_LABELS = {
     "00_summary_stats.png": "Summary Stats",
@@ -237,7 +240,9 @@ Rules:
 - Be concise.
 """
 
-        response = client.models.generate_content(
+        active_client = get_gemini_client(req.api_key)
+
+        response = active_client.models.generate_content(
             model=GEMINI_MODEL,
             contents=prompt,
         )
