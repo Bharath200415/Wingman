@@ -493,13 +493,18 @@ class WhatsAppAnalyzer:
 
         sender_counts = self.df.groupby('sender').size().sort_values(ascending=False)
         sender_avg_len = self.df.groupby('sender')['message'].apply(lambda s: s.str.len().mean())
+        sender_questions = self.df.assign(has_question=self.df['message'].str.contains(r'\?', na=False)).groupby('sender')['has_question'].sum()
 
         sender_stats = {}
         for sender, count in sender_counts.items():
             sender_stats[sender] = {
+                'message_count': int(count),
                 'messages': int(count),
+                'pct_of_total': round((count / len(self.df)) * 100, 2),
                 'share_pct': round((count / len(self.df)) * 100, 2),
+                'avg_msg_length': round(float(sender_avg_len.get(sender, 0.0)), 2),
                 'avg_message_length': round(float(sender_avg_len.get(sender, 0.0)), 2),
+                'questions_sent': int(sender_questions.get(sender, 0)),
             }
 
         response_by_sender = {}
@@ -510,6 +515,9 @@ class WhatsAppAnalyzer:
                     continue
                 response_by_sender[sender] = {
                     'count': int(len(values)),
+                    'p50': round(float(np.percentile(values, 50)), 2),
+                    'p90': round(float(np.percentile(values, 90)), 2),
+                    'p99': round(float(np.percentile(values, 99)), 2),
                     'p50_minutes': round(float(np.percentile(values, 50)), 2),
                     'p90_minutes': round(float(np.percentile(values, 90)), 2),
                     'p99_minutes': round(float(np.percentile(values, 99)), 2),
@@ -542,3 +550,10 @@ class WhatsAppAnalyzer:
             'response_by_sender': response_by_sender,
             'peak_hours': peak_hours,
         }
+
+    def get_raw_messages(self):
+        if self.df is None or self.df.empty:
+            return []
+        raw = self.df.copy()
+        raw['timestamp'] = raw['timestamp'].dt.strftime('%Y-%m-%dT%H:%M:%S')
+        return raw[['timestamp', 'sender', 'message']].to_dict(orient='records')

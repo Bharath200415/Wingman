@@ -1,2 +1,5 @@
 .env
 analysis_outputs/
+venv/
+__pycache__/
+*.pyc

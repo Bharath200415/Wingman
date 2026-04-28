@@ -7,5 +7,4 @@ seaborn
 numpy
 emoji
 python-dateutil
-google-generativeai
-python-dotenv
+google-genai
