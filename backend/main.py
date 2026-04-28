@@ -3,8 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import os
 import base64
-from dotenv import load_dotenv
-import google.generativeai as genai
+from google import genai
 from pydantic import BaseModel
 from analyzer import WhatsAppAnalyzer
 
@@ -18,18 +17,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-load_dotenv()
+def load_env_file(path: str = ".env"):
+    if not os.path.exists(path):
+        return
+
+    with open(path, "r", encoding="utf-8") as fh:
+        for raw_line in fh:
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key and key not in os.environ:
+                os.environ[key] = value
+
+
+load_env_file()
 
 GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 
 if not GEMINI_KEY:
     raise RuntimeError("GEMINI_API_KEY missing in backend .env")
 
-genai.configure(api_key=GEMINI_KEY)
-
-model = genai.GenerativeModel(
-    "gemini-2.5-flash"
-)
+client = genai.Client(api_key=GEMINI_KEY)
+GEMINI_MODEL = "gemini-3.1-flash-lite-preview"
 
 
 
@@ -199,6 +212,9 @@ async def analyze_chat(file: UploadFile = File(...)):
 
         "peak_hours":
             ai_context["peak_hours"],
+
+        "raw_messages":
+            analyzer.get_raw_messages(),
     })
 
 @app.post("/chat")
@@ -221,8 +237,9 @@ Rules:
 - Be concise.
 """
 
-        response = model.generate_content(
-            prompt
+        response = client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=prompt,
         )
 
         return {
