@@ -24,7 +24,7 @@ export default function DailyStreakChart({ rawMessages }) {
 
   return (
     <Card>
-      <CardHeader title="Daily Activity" badge="message streak" />
+      <CardHeader  title="Daily Activity" badge="message streak" />
       <div className="p-4">
         <ResponsiveContainer width="100%" height={180}>
           <AreaChart data={sampled} margin={{ left: -20, right: 8, top: 4, bottom: 0 }}>

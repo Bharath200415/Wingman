@@ -28,25 +28,22 @@ export default function TopBar({ activeNav, participants, totalMessages, onMenuT
   },[darkMode]);
   return (
     <header
-      className="flex items-center justify-between px-5 py-3 flex-shrink-0"
-      style={{ borderBottom:`1px solid ${C.border}`, background: C.base }}
+      className="flex shadow-sm
+      dark:shadow-none shadow-neutral-200 first-letter:items-center justify-between px-5 py-3 bg-background/60 sticky top-0 z-20 h-16 shrink-0 gap-2 backdrop-blur-md md:h-14"
     >
       <div className="flex items-center gap-3">
         {/* Mobile hamburger */}
         <button
           onClick={onMenuToggle}
-          className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{ background: C.surface, border:`1px solid ${C.border}`, color: C.ink2 }}
+          className="lg:hidden h-10 rounded-xl flex items-center text-lg justify-center"
+          style={{ color: C.ink2 }}
         >
           ☰
         </button>
         <div>
-          <p className="text-[10px] leading-none mb-0.5 dark:text-white dark:text-2xl" style={{ fontFamily:"'Fira Code',monospace" }}>
-            Dashboard / {NAV_LABELS[activeNav]}
+          <p className="text-neutral-900 text-md lg:text-lg  mb-0.5 dark:text-white flex ">
+          <span className="hidden md:flex text-neutral-400 dark:text-neutral-200">Dashboard /</span>  {NAV_LABELS[activeNav]}
           </p>
-          <h2 className="text-lg font-black leading-tight" style={{ fontFamily:"'Cabinet Grotesk',sans-serif" }}>
-            {NAV_LABELS[activeNav]}
-          </h2>
         </div>
       </div>
 
@@ -55,7 +52,7 @@ export default function TopBar({ activeNav, participants, totalMessages, onMenuT
       onClick={()=>setDarkMode(!darkMode)}
       className="
       cursor-pointer
-      w-8 h-8
+      w-8 h-8 
       rounded-md
       dark:border-neutral-800
       flex items-center justify-center
@@ -67,11 +64,15 @@ export default function TopBar({ activeNav, participants, totalMessages, onMenuT
         <MoonIcon className="w-4 h-4 text-neutral-500" />
       )}
       </button>
-        {participants?.slice(0,3).map(p => (
-          <Chip key={p} gold>{p.length > 12 ? p.slice(0,10)+"…" : p}</Chip>
-        ))}
-        <Chip>{Number(totalMessages).toLocaleString()} msgs</Chip>
+        <div className="hidden sm:flex items-center gap-2">
+          {participants?.slice(0,3).map(p => (
+            <Chip key={p} gold>{p.length > 12 ? p.slice(0,10)+"…" : p}</Chip>
+          ))}
+
+        </div>
+        <Chip className="text-white">{Number(totalMessages).toLocaleString()} msgs</Chip>
+        
       </div>
     </header>
   );
-}
+} 

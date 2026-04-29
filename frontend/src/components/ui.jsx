@@ -26,54 +26,45 @@ export const CHART_COLORS = [
 // ── Tiny reusable components ──────────────────────────────
 export function Card({ children, className = "", style = {} }) {
   return (
-    <div
-      className={`rounded-2xl ${className}`}
-      style={{ background: C.surface, border: `1px solid ${C.border}`, ...style }}
-    >
+    <div className={`rounded-2xl py-1 bg-gradient-to-t from-neutral-100 px-2 to-neutral-50 border border-neutral-200 shadow-sm dark:from-neutral-950 dark:to-neutral-900 dark:border-neutral-800 ${className}`}>
       {children}
     </div>
   );
 }
 
-export function CardHeader({ title, badge }) {
+export function CardHeader({ title, badge, children }) {
   return (
-    <div
-      className="flex items-center justify-between px-5 py-3"
-      style={{ borderBottom: `1px solid ${C.border}` }}
-    >
-      <span className="text-sm font-semibold dark:text-2xl" style={{ color: C.ink, fontFamily: "'Cabinet Grotesk',sans-serif" }}>
-        {title}
-      </span>
+    <div className="flex items-center justify-between px-5 py-3 border-b dark:border-neutral-600/60 border-neutral-200">
+      <span className="text-md font-semibold text-neutral-950 dark:text-neutral-200">{title}</span>
       {badge && (
-        <span className="text-[10px] px-2 py-0.5 rounded-md" style={{ background: C.surface2, color: C.ink3, fontFamily: "'Fira Code',monospace" }}>
-          {badge}
-        </span>
+        <span className="text-[10px] px-2 py-1 rounded-md bg-neutral-200 text-neutral-600 dark:bg-gray-800 dark:text-white" style={{  fontFamily: "'Fira Code',monospace" }}>{badge}</span>
       )}
+      {children}
     </div>
   );
 }
 
-export function Chip({ children, gold }) {
+export function Chip({ children, gold, className = "" }) {
+  // If the caller provided an explicit text color (e.g. `text-white`),
+  // avoid setting an inline `color` which would override that class.
+  const hasTextClass = /(^|\s)text-[^\s]+/.test(className);
+  const style = {
+    background: gold ? C.goldDim : C.surface2,
+    border: `1px solid ${gold ? C.goldMid : C.border}`,
+    ...(hasTextClass ? {} : { color: gold ? C.gold : C.ink2 }),
+  };
+
   return (
-    <span
-      className="text-xs px-3 py-1 rounded-full"
-      style={{
-        background: gold ? C.goldDim : C.surface2,
-        color: gold ? C.gold : C.ink2,
-        border: `1px solid ${gold ? C.goldMid : C.border}`,
-      }}
-    >
+    <span className={`text-xs px-3 py-1 rounded-full ${className}`} style={style}>
       {children}
     </span>
   );
 }
 
-export function Avatar({ name, size = 7 }) {
+export function Avatar({ name, size = 28 }) {
+  const s = `${size}px`;
   return (
-    <div
-      className={`w-${size} h-${size} rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0`}
-      style={{ background: C.goldDim, color: C.gold }}
-    >
+    <div style={{ width: s, height: s, borderRadius: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.goldDim, color: C.gold, fontWeight: 700 }}>
       {name?.[0]?.toUpperCase() ?? "?"}
     </div>
   );

@@ -45,6 +45,44 @@ class WhatsAppAnalyzer:
         with open(self.filepath, 'r', encoding='utf-8', errors='replace') as file:
             lines = file.readlines()
 
+        # Infer whether dates are day-first (DD/MM) or month-first (MM/DD)
+        # by scanning unambiguous date tokens in the export.
+        dayfirst_votes = 0
+        monthfirst_votes = 0
+        date_token_re = re.compile(r"^(\d{1,2})[\-/](\d{1,2})[\-/](\d{2,4})")
+        for raw in lines:
+            m = timestamp_re.match(raw.replace('\u202f', ' ').replace('\xa0', ' ').strip())
+            if not m:
+                continue
+            ts_candidate = m.group('ts').strip('[]').strip()
+            dm = date_token_re.match(ts_candidate)
+            if not dm:
+                continue
+            a = int(dm.group(1))
+            b = int(dm.group(2))
+            if a > 12 and b <= 12:
+                dayfirst_votes += 1
+            elif b > 12 and a <= 12:
+                monthfirst_votes += 1
+
+        prefer_dayfirst = dayfirst_votes >= monthfirst_votes
+
+        dayfirst_formats = [
+            '%d/%m/%Y, %H:%M', '%d/%m/%y, %H:%M', '%d/%m/%Y, %I:%M %p',
+            '%d/%m/%y, %I:%M %p', '%d/%m/%y, %I:%M%p', '%d/%m/%Y, %I:%M%p'
+        ]
+        monthfirst_formats = [
+            '%m/%d/%y, %I:%M %p', '%m/%d/%Y, %I:%M %p', '%m/%d/%y, %H:%M',
+            '%m/%d/%Y, %H:%M:%S', '%m/%d/%y, %I:%M%p', '%m/%d/%Y, %I:%M%p'
+        ]
+        neutral_formats = ['%Y-%m-%d, %H:%M:%S', '%Y-%m-%d, %H:%M']
+
+        timestamp_formats = (
+            dayfirst_formats + monthfirst_formats + neutral_formats
+            if prefer_dayfirst
+            else monthfirst_formats + dayfirst_formats + neutral_formats
+        )
+
         current = None
         matched = 0
         for raw in lines:
@@ -84,12 +122,8 @@ class WhatsAppAnalyzer:
 
 
                 timestamp = None
-                # try a list of timestamp formats
-                for fmt in ['%m/%d/%y, %I:%M %p', '%m/%d/%Y, %I:%M %p', '%d/%m/%Y, %H:%M',
-                            '%d/%m/%y, %H:%M', '%m/%d/%y, %H:%M', '%Y-%m-%d, %H:%M:%S',
-                            '%Y-%m-%d, %H:%M', '%d/%m/%Y, %I:%M %p', '%m/%d/%Y, %H:%M:%S',
-                            '%d/%m/%y, %I:%M %p', '%m/%d/%y, %I:%M%p', '%d/%m/%y, %I:%M%p',
-                            '%m/%d/%Y, %I:%M%p', '%d/%m/%Y, %I:%M%p']:
+                # Try inferred locale order first to avoid day/month swaps.
+                for fmt in timestamp_formats:
                     try:
                         timestamp = datetime.strptime(ts_str, fmt)
                         break

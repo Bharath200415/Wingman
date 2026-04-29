@@ -15,7 +15,7 @@ function SectionTitle({ children }) {
   return (
     <div className="flex items-center gap-3 mb-4">
       <div className="h-4 w-0.5 rounded-full" style={{ background: C.gold }} />
-      <span className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: C.ink3, fontFamily:"'Fira Code',monospace" }}>
+      <span className="text-sm sm:text-lg tracking-tight font-semibold text-neutral-800 dark:text-neutral-50">
         {children}
       </span>
     </div>
@@ -99,19 +99,20 @@ export function ResponseSection({ data }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ResponsePercentilesChart responseByPerson={response_by_sender} />
         {/* Explanation card */}
-        <div className="rounded-2xl p-5 flex flex-col gap-4" style={{ background: C.surface, border:`1px solid ${C.border}` }}>
-          <p className="text-sm font-semibold" style={{ color: C.ink, fontFamily:"'Cabinet Grotesk',sans-serif" }}>Reading Percentiles</p>
+        <div className="rounded-2xl p-5 flex flex-col gap-4 bg-gradient-to-t from-neutral-100 to-neutral-50 border dark:border-neutral-800 shadow-sm dark:from-neutral-950 dark:to-neutral-900 ">
+          <p className="text-md font-semibold text-neutral-950 dark:text-neutral-200 border-b pb-2 border-neutral-200 dark:border-neutral-600/60" >Reading Percentiles</p>
+          <span className="mb-3"></span>
           {[
-            { label:"P50", color: C.green,  desc:"Median — half of replies come within this time." },
+            { label:"P50", color: C.green,  desc:"Median : (Usually) half of replies come within this time." },
             { label:"P90", color: C.gold,   desc:"90% of replies are faster than this." },
-            { label:"P99", color: C.rose,   desc:"The worst 1% — how long they can ghost." },
+            { label:"P99", color: C.rose,   desc:"The worst 1% : how long they can ghost." },
           ].map(r => (
-            <div key={r.label} className="flex items-start gap-3">
-              <span className="text-xs font-black px-2 py-0.5 rounded-md mt-0.5" style={{ background:`${r.color}20`, color: r.color, fontFamily:"'Fira Code',monospace" }}>{r.label}</span>
-              <p className="text-xs leading-relaxed" style={{ color: C.ink2 }}>{r.desc}</p>
+            <div key={r.label} className="flex items-start gap-3 mb-2">
+              <span className="text-xs font-black px-2 py-0.5 rounded-md mt-0.1" style={{ background:`${r.color}20`, color: r.color, fontFamily:"'Fira Code',monospace" }}>{r.label}</span>
+              <p className="text-sm leading-relaxed" style={{ color: C.ink2 }}>{r.desc}</p>
             </div>
           ))}
-          <p className="text-xs leading-relaxed mt-1" style={{ color: C.ink3 }}>
+          <p className="text-sm leading-relaxed mt-9 bottom-0" style={{ color: C.ink3 }}>
             A big gap between P50 and P99 means someone usually replies fast but occasionally disappears for hours.
           </p>
         </div>

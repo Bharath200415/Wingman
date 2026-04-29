@@ -34,7 +34,7 @@ export default function Dashboard({ chatData, chats, activeId, onSelectChat, onD
   };
 
   return (
-    <div className="flex h-screen overflow-auto" style={{ background: C.base }}>
+    <div className="flex h-screen overflow-auto bg-neutral-50 dark:bg-neutral-950">
 
       {/* Mobile overlay */}
       {sidebarOpen && (

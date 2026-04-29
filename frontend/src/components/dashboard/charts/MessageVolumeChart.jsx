@@ -13,9 +13,10 @@ export default function MessageVolumeChart({ senderStats }) {
     .sort((a, b) => b.messages - a.messages);
 
   return (
-    <Card>
-      <CardHeader title="Message Volume" badge="who talks more" />
-      <div className="p-4">
+    <Card  >
+      <CardHeader
+      title="Message Volume" badge="who talks more" />
+      <div>
         <ResponsiveContainer width="100%" height={Math.max(160, data.length * 52)}>
           <BarChart data={data} layout="vertical" margin={{ left: 0, right: 48, top: 4, bottom: 4 }}>
             <XAxis

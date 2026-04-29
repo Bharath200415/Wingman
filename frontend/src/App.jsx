@@ -3,6 +3,8 @@ import { useChats } from "./hooks/useChats.js";
 import UploadPage from "./components/upload/UploadPage.jsx";
 import Dashboard from "./components/dashboard/Dashboard.jsx";
 import { MoonIcon,SunIcon } from "./components/icons.jsx";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -63,18 +65,28 @@ export default function App() {
   }
 
   return (
-    <Dashboard
-      chatData={activeChat?.data ?? null}
-      chats={chats}
-      activeId={activeId}
-      onSelectChat={handleSelectChat}
-      onDeleteChat={(id) => {
-        removeChat(id);
-        if (activeId === id) setActiveId(chats.find(c => c.id !== id)?.id ?? null);
-      }}
-      onRenameChat={renameChat}
-      onNewAnalysis={() => setShowUpload(true)}
-    />
+    <>
+      <BrowserRouter>
+      <Routes>
+        <Route path="/" element={
+              <Dashboard
+              chatData={activeChat?.data ?? null}
+              chats={chats}
+              activeId={activeId}
+              onSelectChat={handleSelectChat}
+              onDeleteChat={(id) => {
+                removeChat(id);
+                if (activeId === id) setActiveId(chats.find(c => c.id !== id)?.id ?? null);
+              }}
+              onRenameChat={renameChat}
+              onNewAnalysis={() => setShowUpload(true)}
+            />
+        }/>
+
+      </Routes>
+      </BrowserRouter>
+    </>
+
   );
 }
 
