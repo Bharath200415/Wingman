@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "../sidebar/Sidebar.jsx";
 import TopBar from "./TopBar.jsx";
 import { OverviewSection, ResponseSection, ActivitySection, PatternsSection } from "./sections/Sections.jsx";
@@ -8,6 +8,29 @@ import { C } from "../ui.jsx";
 export default function Dashboard({ chatData, chats, activeId, onSelectChat, onDeleteChat, onRenameChat, onNewAnalysis }) {
   const [activeNav,     setActiveNav]     = useState("overview");
   const [sidebarOpen,   setSidebarOpen]   = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 1023px)");
+    const updateViewport = () => setIsMobile(mediaQuery.matches);
+
+    updateViewport();
+    mediaQuery.addEventListener("change", updateViewport);
+
+    return () => mediaQuery.removeEventListener("change", updateViewport);
+  }, []);
+
+  const effectiveSidebarCollapsed = isMobile ? false : sidebarCollapsed;
+
+  const handleToggleSidebar = () => {
+    if (isMobile) {
+      setSidebarOpen(false);
+      return;
+    }
+
+    setSidebarCollapsed(v => !v);
+  };
 
   const participants  = chatData?.participants  ?? [];
   const totalMessages = chatData?.total_messages ?? 0;
@@ -53,6 +76,8 @@ export default function Dashboard({ chatData, chats, activeId, onSelectChat, onD
           chats={chats}
           activeChat={activeId}
           activeNav={activeNav}
+          collapsed={effectiveSidebarCollapsed}
+          onToggleCollapsed={handleToggleSidebar}
           onSelectChat={(id) => { onSelectChat(id); setSidebarOpen(false); }}
           onSelectNav={(nav) => { setActiveNav(nav); setSidebarOpen(false); }}
           onNewAnalysis={onNewAnalysis}
@@ -63,7 +88,10 @@ export default function Dashboard({ chatData, chats, activeId, onSelectChat, onD
       </div>
 
       {/* Main */}
-      <main className="flex-1 flex flex-col min-h-0 lg:ml-[220px]" style={{ minHeight: 0 }}>
+      <main
+        className={`flex-1 flex flex-col min-h-0 transition-[margin-left] duration-450 ease-in-out ${effectiveSidebarCollapsed ? "lg:ml-[70px]" : "lg:ml-[220px]"}`}
+        style={{ minHeight: 0 }}
+      >
         <TopBar
           activeNav={activeNav}
           participants={participants}

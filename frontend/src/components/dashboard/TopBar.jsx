@@ -42,7 +42,7 @@ export default function TopBar({ activeNav, participants, totalMessages, onMenuT
         </button>
         <div>
           <p className="text-neutral-900 text-md lg:text-lg  mb-0.5 dark:text-white flex ">
-          <span className="hidden md:flex text-neutral-400 dark:text-neutral-200">Dashboard /</span>  {NAV_LABELS[activeNav]}
+          <span className="hidden md:flex text-neutral-400 dark:text-neutral-200">Dashboard / </span>  {NAV_LABELS[activeNav]}
           </p>
         </div>
       </div>
