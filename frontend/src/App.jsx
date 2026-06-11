@@ -43,6 +43,39 @@ export default function App() {
     }
   },[darkMode]);
 
+  const toggleDarkMode = (e) => {
+    if (!document.startViewTransition) {
+      setDarkMode(!darkMode);
+      return;
+    }
+    const x = e.clientX || window.innerWidth / 2;
+    const y = e.clientY || window.innerHeight / 2;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const transition = document.startViewTransition(() => {
+      setDarkMode(!darkMode);
+    });
+
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 400,
+          easing: "ease-out",
+          pseudoElement: "::view-transition-new(root)",
+        }
+      );
+    });
+  };
+
 
   // Show upload page if: no chats saved, or explicitly triggered
   const shouldShowUpload = showUpload || (chats.length === 0 && !activeId);
@@ -50,7 +83,7 @@ export default function App() {
   if (shouldShowUpload) {
     return (
       <div>
-        <button onClick={()=>setDarkMode(!darkMode)} 
+        <button onClick={toggleDarkMode} 
           className='cursor-pointer absolute size-6 border border-neutral-200 dark:border-neutral-800 rounded-md  flex items-center justify-center top-4 right-4'>
               <SunIcon  className='absolute inset-0 shrink-0 size-4 dark:scale-0 scale-100 dark:rotate-45 text-neutral-500 transition-all duration-300 m-auto'/>
               <MoonIcon className='absolute inset-0 shrink-0 size-4 dark:scale-100 scale-0 dark:rotate-0 rotate-45 text-neutral-500 transition-all duration-300 m-auto'/>

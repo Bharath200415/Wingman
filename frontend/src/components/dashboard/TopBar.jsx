@@ -7,25 +7,58 @@ const NAV_LABELS = {
   response: "Response Times",
   activity: "Activity",
   patterns: "Patterns",
-  ai:       "AI Analyst",
+  Ai: "AI Analyst",
 };
- 
 
 
 export default function TopBar({ activeNav, participants, totalMessages, onMenuToggle }) {
- const [darkMode,setDarkMode]=useState(
+  const [darkMode, setDarkMode] = useState(
     localStorage.getItem("theme") !== "light"
   );
 
-  useEffect(()=>{
-    if(darkMode){
+  useEffect(() => {
+    if (darkMode) {
       document.documentElement.classList.add("dark");
-      localStorage.setItem("theme","dark");
-    }else{
+      localStorage.setItem("theme", "dark");
+    } else {
       document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme","light");
+      localStorage.setItem("theme", "light");
     }
-  },[darkMode]);
+  }, [darkMode]);
+
+  const toggleDarkMode = (e) => {
+    if (!document.startViewTransition) {
+      setDarkMode(!darkMode);
+      return;
+    }
+    const x = e.clientX || window.innerWidth / 2;
+    const y = e.clientY || window.innerHeight / 2;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const transition = document.startViewTransition(() => {
+      setDarkMode(!darkMode);
+    });
+
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 400,
+          easing: "ease-out",
+          pseudoElement: "::view-transition-new(root)",
+        }
+      );
+    });
+  };
+
   return (
     <header
       className="flex shadow-sm
@@ -42,36 +75,36 @@ export default function TopBar({ activeNav, participants, totalMessages, onMenuT
         </button>
         <div>
           <p className="text-neutral-900 text-md lg:text-lg  mb-0.5 dark:text-white flex ">
-          <span className="hidden md:flex text-neutral-400 dark:text-neutral-200">Dashboard / </span>  {NAV_LABELS[activeNav]}
+            <span className="hidden md:flex text-neutral-400 dark:text-neutral-200">Dashboard / </span>  {NAV_LABELS[activeNav]}
           </p>
         </div>
       </div>
 
       <div className="flex items-center gap-2 flex-wrap justify-end">
-      <button
-      onClick={()=>setDarkMode(!darkMode)}
-      className="
+        <button
+          onClick={toggleDarkMode}
+          className="
       cursor-pointer
       w-8 h-8 
       rounded-md
       dark:border-neutral-800
       flex items-center justify-center
       "
-      >
-      {darkMode ? (
-        <SunIcon className="w-4 h-4 text-neutral-500" />
-      ) : (
-        <MoonIcon className="w-4 h-4 text-neutral-500" />
-      )}
-      </button>
+        >
+          {darkMode ? (
+            <SunIcon className="w-4 h-4 text-neutral-500" />
+          ) : (
+            <MoonIcon className="w-4 h-4 text-neutral-500" />
+          )}
+        </button>
         <div className="hidden sm:flex items-center gap-2">
-          {participants?.slice(0,3).map(p => (
-            <Chip key={p} gold>{p.length > 12 ? p.slice(0,10)+"…" : p}</Chip>
+          {participants?.slice(0, 3).map(p => (
+            <Chip key={p} gold>{p.length > 12 ? p.slice(0, 10) + "…" : p}</Chip>
           ))}
 
         </div>
         <Chip className="text-white">{Number(totalMessages).toLocaleString()} msgs</Chip>
-        
+
       </div>
     </header>
   );

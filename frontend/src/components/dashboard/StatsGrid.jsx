@@ -65,14 +65,14 @@ function MetricCard({ label, value, sub, wide, compact = false }) {
 
 export default function StatsGrid({ stats, totalMessages, participants }) {
   const cards = [
-    { label:"Total Messages",   value: Number(totalMessages).toLocaleString(), highlight: true },
-    { label:"Participants",     value: participants?.length ?? "—" },
-    { label:"Days Active",      value: stats?.["Days Active"] ?? "—" },
-    { label:"Avg / Day",        value: stats?.["Avg Messages/Day"] ?? "—", highlight: true },
-    { label:"P50 Response",     value: stats?.["P50 Response Time"] ?? "—" },
-    { label:"P90 Response",     value: stats?.["P90 Response Time"] ?? "—" },
-    { label:"P99 Response",     value: stats?.["P99 Response Time"] ?? "—", highlight: true },
-    { label:"Date Range",       value: formatDateRange(stats?.["Date Range"]), wide: true, compact: true },
+    { label: "Total Messages", value: Number(totalMessages).toLocaleString(), highlight: true },
+    { label: "Participants", value: participants?.length ?? "—" },
+    { label: "Days Active", value: stats?.["Days Active"] ?? "—" },
+    { label: "Avg / Day", value: stats?.["Avg Messages/Day"] ?? "—", highlight: true },
+    { label: "P50 Response", value: stats?.["P50 Response Time"] ?? "—" },
+    { label: "P90 Response", value: stats?.["P90 Response Time"] ?? "—" },
+    { label: "P99 Response", value: stats?.["P99 Response Time"] ?? "—", highlight: true },
+    { label: "Date Range", value: formatDateRange(stats?.["Date Range"]), wide: true, compact: true },
   ];
 
   return (

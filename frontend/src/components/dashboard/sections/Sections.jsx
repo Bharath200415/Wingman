@@ -103,12 +103,12 @@ export function ResponseSection({ data }) {
           <p className="text-md font-semibold text-neutral-950 dark:text-neutral-200 border-b pb-2 border-neutral-200 dark:border-neutral-600/60" >Reading Percentiles</p>
           <span className="mb-3"></span>
           {[
-            { label:"P50", color: C.green,  desc:"Median : (Usually) half of replies come within this time." },
-            { label:"P90", color: C.gold,   desc:"90% of replies are faster than this." },
-            { label:"P99", color: C.rose,   desc:"The worst 1% : how long they can ghost." },
+            { label: "P50", color: C.green, desc: "Median : (Usually) half of replies come within this time." },
+            { label: "P90", color: C.gold, desc: "90% of replies are faster than this." },
+            { label: "P99", color: C.rose, desc: "The worst 1% : how long they can ghost." },
           ].map(r => (
             <div key={r.label} className="flex items-start gap-3 mb-2">
-              <span className="text-xs font-black px-2 py-0.5 rounded-md mt-0.1" style={{ background:`${r.color}20`, color: r.color, fontFamily:"'Fira Code',monospace" }}>{r.label}</span>
+              <span className="text-xs font-black px-2 py-0.5 rounded-md mt-0.1" style={{ background: `${r.color}20`, color: r.color, fontFamily: "'Fira Code',monospace" }}>{r.label}</span>
               <p className="text-sm leading-relaxed" style={{ color: C.ink2 }}>{r.desc}</p>
             </div>
           ))}

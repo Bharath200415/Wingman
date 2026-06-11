@@ -13,7 +13,7 @@ function parseHour(ts) {
     // Fallback to Date parsing
     const d = new Date(ts);
     if (!isNaN(d)) return d.getHours();
-  } catch {}
+  } catch { }
   return null;
 }
 
@@ -37,7 +37,7 @@ export default function ActivityHourChart({ rawMessages }) {
 
   return (
     <Card>
-      <CardHeader title="Activity by Hour" badge="peak hours" className="dark:text-blue-500"/>
+      <CardHeader title="Activity by Hour" badge="peak hours" className="dark:text-blue-500" />
       <div className="p-4">
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={data} margin={{ top: 4, right: 8, left: -20, bottom: 4 }}>

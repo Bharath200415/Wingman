@@ -15,7 +15,7 @@ export default function MessageVolumeChart({ senderStats }) {
   return (
     <Card  >
       <CardHeader
-      title="Message Volume" badge="who talks more" />
+        title="Message Volume" badge="who talks more" />
       <div>
         <ResponsiveContainer width="100%" height={Math.max(160, data.length * 52)}>
           <BarChart data={data} layout="vertical" margin={{ left: 0, right: 48, top: 4, bottom: 4 }}>
