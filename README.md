@@ -3,6 +3,9 @@ Wingman is a local-first, privacy-respecting WhatsApp Chat Analyzer featuring a 
 
 The platform is designed to take exported WhatsApp chat logs (`.txt` files), parse message histories with automatic locale and format detection, generate deep behavioral analytics, render visual performance heatmaps/charts, and let you conversationally grill your chat data.
 
+<img width="1908" height="913" alt="image" src="https://github.com/user-attachments/assets/71e038ee-4007-4255-810e-c3d9e2b695d8" />
+
+<img width="1917" height="905" alt="image" src="https://github.com/user-attachments/assets/5c7e1a3f-6459-4d00-a14f-c0919bec9b77" />
 
 
 ---
