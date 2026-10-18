@@ -1,4 +1,4 @@
-import { C } from "../ui.jsx";
+import { C, CHART_COLORS } from "../ui.jsx";
 import { useState, useEffect } from "react";
 import { SunIcon, MoonIcon } from "../icons.jsx";
 
@@ -113,10 +113,11 @@ function ChatBadge({ participants, totalMessages }) {
       {participants.length > 0 && (
         <div className="hidden sm:flex items-center gap-2.5 pl-1.5 pr-3.5 h-full" title={participants.join(", ")}>
           <div className="flex -space-x-1.5">
-            {participants.slice(0, 3).map(p => (
+            {participants.slice(0, 3).map((p, i) => (
               <span
                 key={p}
-                className="w-6 h-6 rounded-full grid place-items-center text-[10.5px] font-semibold uppercase ring-2 ring-white bg-gradient-to-b from-neutral-100 to-neutral-200 text-neutral-600 dark:ring-neutral-950 dark:from-neutral-700 dark:to-neutral-800 dark:text-neutral-200"
+                className="w-6 h-6 rounded-full grid place-items-center text-[10.5px] font-semibold uppercase text-neutral-900 ring-2 ring-white dark:ring-neutral-950"
+                style={{ background: CHART_COLORS[i % CHART_COLORS.length] }}
               >
                 {p.trim()[0]}
               </span>
