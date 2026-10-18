@@ -72,6 +72,17 @@
   animation: wm-drift 18s ease-in-out infinite alternate;
 }
 
+/* Glassy 1px frame: bright along the top edge, fading down the sides. */
+.wm-shine {
+  position: relative;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.12) 14%, rgba(255, 255, 255, 0.05) 55%, rgba(255, 255, 255, 0.03));
+}
+.wm-shine::before {
+  content: ""; position: absolute; z-index: 1; pointer-events: none;
+  top: 0; left: 10%; right: 10%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+}
+
 .wm-drop {
   position: relative;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;

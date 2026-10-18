@@ -218,12 +218,14 @@ export default function LandingPage() {
 
         {/* Showcase */}
         <div className="relative mx-auto max-w-[1200px] px-5 md:px-8 pb-24" data-reveal>
-          <div className="relative overflow-hidden rounded-[18px] border border-[var(--line)]">
+          <div className="relative overflow-hidden rounded-[10px] border border-[var(--line)]">
             <div className="wm-backdrop" />
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_70%_at_50%_70%,rgba(8,9,11,0.35),transparent)]" />
             <div className="relative px-[4%] sm:px-[7%] pt-[6%]">
-              <div className="overflow-hidden rounded-t-xl border border-b-0 border-white/10 shadow-[0_-20px_80px_-20px_rgba(0,0,0,0.6),0_0_0_1px_rgba(0,0,0,0.4)]">
-                <DashboardShot />
+              <div className="wm-shine rounded-t-xl p-px pb-0 shadow-[0_-20px_80px_-20px_rgba(0,0,0,0.6)] -bottom-9">
+                <div className="overflow-hidden rounded-t-[11px] bg-[#0a0a0a]">
+                  <DashboardShot />
+                </div>
               </div>
             </div>
           </div>
