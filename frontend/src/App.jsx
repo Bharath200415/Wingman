@@ -1,17 +1,27 @@
 import { useState, useEffect} from "react";
 import { useChats } from "./hooks/useChats.js";
+import LandingPage from "./components/landing/LandingPage.jsx";
 import UploadPage from "./components/upload/UploadPage.jsx";
 import Dashboard from "./components/dashboard/Dashboard.jsx";
 import { MoonIcon,SunIcon } from "./components/icons.jsx";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  );
+}
+
+function AppRoutes() {
   const { chats, addChat, removeChat, renameChat } = useChats();
   const [activeId,      setActiveId]      = useState(() => null);
-  const [showUpload,    setShowUpload]    = useState(false);
+  const navigate = useNavigate();
+  const hasChats = chats.length > 0;
 
   // Derive active chat data
   const activeChat = chats.find(c => c.id === activeId);
@@ -21,12 +31,11 @@ export default function App() {
     // Pass raw_messages from result if backend returns them
     const id = addChat(result, guessName(result));
     setActiveId(id);
-    setShowUpload(false);
+    navigate("/dashboard");
   };
 
   const handleSelectChat = (id) => {
     setActiveId(id);
-    setShowUpload(false);
   };
 
   const [darkMode,setDarkMode]=useState(
@@ -77,41 +86,33 @@ export default function App() {
   };
 
 
-  // Show upload page if: no chats saved, or explicitly triggered
-  const shouldShowUpload = showUpload || (chats.length === 0 && !activeId);
-
-  if (shouldShowUpload) {
-    return (
-      <UploadPage
-        apiUrl={API_URL}
-        onResult={handleResult}
-      />
-    );
-  }
-
+  // Returning users skip the landing page; the dashboard needs at least one chat.
   return (
-    <>
-      <BrowserRouter>
-      <Routes>
-        <Route path="/" element={
-              <Dashboard
-              chatData={activeChat?.data ?? null}
-              chats={chats}
-              activeId={activeId}
-              onSelectChat={handleSelectChat}
-              onDeleteChat={(id) => {
-                removeChat(id);
-                if (activeId === id) setActiveId(chats.find(c => c.id !== id)?.id ?? null);
-              }}
-              onRenameChat={renameChat}
-              onNewAnalysis={() => setShowUpload(true)}
-            />
-        }/>
-
-      </Routes>
-      </BrowserRouter>
-    </>
-
+    <Routes>
+      <Route path="/" element={hasChats ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
+      <Route path="/upload" element={
+        <UploadPage
+          apiUrl={API_URL}
+          onResult={handleResult}
+          hasChats={hasChats}
+        />
+      }/>
+      <Route path="/dashboard" element={hasChats ? (
+        <Dashboard
+          chatData={activeChat?.data ?? null}
+          chats={chats}
+          activeId={activeId}
+          onSelectChat={handleSelectChat}
+          onDeleteChat={(id) => {
+            removeChat(id);
+            if (activeId === id) setActiveId(chats.find(c => c.id !== id)?.id ?? null);
+          }}
+          onRenameChat={renameChat}
+          onNewAnalysis={() => navigate("/upload")}
+        />
+      ) : <Navigate to="/" replace />}/>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 

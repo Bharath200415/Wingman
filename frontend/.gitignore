@@ -9,7 +9,8 @@ lerna-debug.log*
 
 
 .env 
-
+.claude/*
+.agents/*
 node_modules
 dist
 dist-ssr

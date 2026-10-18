@@ -9,6 +9,7 @@ import DoubleTextFrequency from "../charts/DoubleTextFrequency.jsx";
 import MessageLengthChart from "../charts/MessageLengthChart.jsx";
 import QuestionFreqChart from "../charts/QuestionFreqChart.jsx";
 import ConversationGapsChart from "../charts/ConversationGapsChart.jsx";
+import MessageHeatmap from "../charts/MessageHeatmap.jsx";
 import { C } from "../../ui.jsx";
 
 function SectionTitle({ children }) {
@@ -82,6 +83,8 @@ export function OverviewSection({ data }) {
   return (
     <div>
       <StatsGrid stats={stats} totalMessages={total_messages} participants={participants} />
+      <SectionTitle>Message Frequency</SectionTitle>
+      <MessageHeatmap rawMessages={raw_messages} />
       <SectionTitle>Chat Volume</SectionTitle>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <MessageVolumeChart senderStats={sender_stats} />

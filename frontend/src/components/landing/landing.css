@@ -1,0 +1,130 @@
+/* Shared styles for the landing and upload pages. */
+.wm-landing {
+  --bg: #08090b;
+  --panel: #0d0f12;
+  --line: rgba(255, 255, 255, 0.075);
+  --text: #ededef;
+  --muted: #8d919a;
+  --dim: #5f646d;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Geist Variable', 'Geist', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.wm-landing ::selection { background: rgba(245, 200, 66, 0.3); }
+.wm-mono { font-family: 'Geist Mono', 'Fira Code', ui-monospace, monospace; }
+.wm-eyebrow {
+  font-family: 'Geist Mono', 'Fira Code', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.wm-h2 {
+  font-size: clamp(32px, 4.4vw, 48px);
+  line-height: 1.06;
+  letter-spacing: -0.04em;
+  font-weight: 500;
+  text-wrap: balance;
+}
+.wm-link { color: var(--muted); transition: color 200ms ease; }
+.wm-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 28px; padding: 0 10px; border-radius: 7px;
+  border: 1px solid var(--line); background: rgba(255, 255, 255, 0.02);
+}
+
+.wm-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 38px; padding: 0 16px; border-radius: 8px;
+  font-size: 14px; font-weight: 500; white-space: nowrap;
+  transition: transform 160ms var(--ease-out), background-color 200ms ease;
+}
+.wm-btn:active { transform: scale(0.97); }
+.wm-btn-primary { background: #ededef; color: #0a0a0b; }
+.wm-btn-ghost { background: rgba(255, 255, 255, 0.05); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); }
+
+.wm-bracket::before, .wm-bracket::after {
+  content: ""; position: absolute; width: 10px; height: 10px; pointer-events: none;
+  border-color: rgba(255, 255, 255, 0.35); border-style: solid;
+}
+.wm-bracket::before { top: -1px; left: -1px; border-width: 1px 0 0 1px; }
+.wm-bracket::after { bottom: -1px; right: -1px; border-width: 0 1px 1px 0; }
+
+.wm-dots {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(ellipse 55% 60% at 30% 25%, black, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 55% 60% at 30% 25%, black, transparent 75%);
+}
+
+.wm-backdrop {
+  position: absolute; inset: -12%;
+  background:
+    radial-gradient(28% 40% at 50% 6%, rgba(255, 246, 232, 0.95), transparent 70%),
+    radial-gradient(26% 50% at 14% 52%, rgba(255, 214, 170, 0.75), transparent 70%),
+    radial-gradient(30% 55% at 88% 42%, rgba(246, 168, 104, 0.7), transparent 70%),
+    radial-gradient(38% 40% at 26% 96%, rgba(214, 104, 56, 0.55), transparent 70%),
+    radial-gradient(34% 42% at 74% 98%, rgba(250, 228, 206, 0.5), transparent 70%),
+    #131314;
+  filter: blur(42px);
+  animation: wm-drift 18s ease-in-out infinite alternate;
+}
+
+.wm-drop {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+  min-height: 280px; padding: 40px 24px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.01));
+}
+.wm-drop-idle { transition: border-color 200ms ease, background-color 200ms ease; outline: none; }
+.wm-drop-idle:focus-visible { border-color: rgba(255, 255, 255, 0.3); }
+.wm-drop-idle[data-drag] { border-color: rgba(245, 200, 66, 0.6); background: rgba(245, 200, 66, 0.04); }
+.wm-drop-idle[data-error] { border-color: rgba(255, 107, 129, 0.4); }
+
+.wm-faq-icon { transition: transform 200ms var(--ease-out); }
+.wm-faq[open] .wm-faq-icon { transform: rotate(45deg); }
+.wm-faq summary::-webkit-details-marker { display: none; }
+
+.wm-ping { animation: wm-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
+.wm-intro > * { animation: wm-rise 900ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 80ms); }
+[data-reveal] {
+  opacity: 0; transform: translateY(14px);
+  transition: opacity 800ms var(--ease-out), transform 800ms var(--ease-out);
+}
+[data-reveal="in"] { opacity: 1; transform: none; }
+
+@media (hover: hover) and (pointer: fine) {
+  .wm-link:hover { color: var(--text); }
+  .wm-btn-primary:hover { background: #ffffff; }
+  .wm-btn-ghost:hover { background: rgba(255, 255, 255, 0.09); }
+  .wm-cell { transition: background-color 250ms ease; }
+  .wm-cell:hover { background-color: #0b0c0f; }
+  .wm-drop-idle:hover { border-color: rgba(255, 255, 255, 0.16); }
+  .wm-sample { transition: border-color 200ms ease, background-color 200ms ease; }
+  .wm-sample:hover { border-color: rgba(255, 255, 255, 0.22); background-color: rgba(255, 255, 255, 0.03); }
+  .wm-faq summary:hover .wm-faq-icon { color: var(--text); }
+}
+
+@keyframes wm-rise {
+  from { opacity: 0; transform: translateY(16px); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes wm-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes wm-step {
+  from { opacity: 0; transform: translateY(10px); filter: blur(2px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes wm-ping { 75%, 100% { transform: scale(2.6); opacity: 0; } }
+@keyframes wm-drift {
+  from { transform: scale(1) translate3d(0, 0, 0); }
+  to { transform: scale(1.06) translate3d(-2%, 1.5%, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wm-intro > *, .wm-backdrop, .wm-ping { animation: none !important; }
+  [data-reveal] { transform: none; transition: opacity 400ms ease; }
+}
